@@ -51,7 +51,7 @@ a:hover {
 
 .navbar a {
   padding: 6px 14px;
-  border-radius: 3px;
+  border-radius: 10px;
 }
 
 .navbar a:hover {
@@ -132,6 +132,11 @@ select:focus {
   color: #6b6b6b;
   font-size: 13px;
   margin: 0 0 0.6em 0;
+}
+
+.list-btn {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
 }
 
 #description {

@@ -195,6 +195,7 @@
           );
 
           if (!res.ok) {
+            window.location = "list-cars.html";
             throw "Server error occurred, status code: " + res.status;
           }
 
