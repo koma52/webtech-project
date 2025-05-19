@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Autó Hozzáadása</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div>
+      <div>
+        <label for="brand">Márka:</label>
+        <select id="brand">
+          <option value="Toyota">Toyota</option>
+          <option value="Honda">Honda</option>
+          <option value="Ford">Ford</option>
+          <option value="Chevrolet">Chevrolet</option>
+          <option value="Nissan">Nissan</option>
+          <option value="BMW">BMW</option>
+          <option value="Mercedes-Benz">Mercedes-Benz</option>
+          <option value="Volkswagen">Volkswagen</option>
+          <option value="Audi">Audi</option>
+          <option value="Hyundai">Hyundai</option>
+          <option value="Kia">Kia</option>
+          <option value="Subaru">Subaru</option>
+          <option value="Lexus">Lexus</option>
+          <option value="Mazda">Mazda</option>
+          <option value="Tesla">Tesla</option>
+          <option value="Jeep">Jeep</option>
+          <option value="Porsche">Porsche</option>
+          <option value="Volvo">Volvo</option>
+          <option value="Jaguar">Jaguar</option>
+          <option value="Land Rover">Land Rover</option>
+          <option value="Mitsubishi">Mitsubishi</option>
+          <option value="Ferrari">Ferrari</option>
+          <option value="Lamborghini">Lamborghini</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="model">Modell:</label>
+        <input type="text" id="model" />
+      </div>
+
+      <div>
+        <label for="owner">Tulajdonos:</label>
+        <input type="text" id="owner" />
+      </div>
+
+      <div>
+        <label for="dayOfCommission">Megjelent:</label>
+        <input type="date" id="dayOfCommission" />
+      </div>
+
+      <div>
+        <p>Meghajtás:</p>
+        <input type="checkbox" id="electric" />
+        <label for="electric">Elektromos</label>
+      </div>
+
+      <div id="fuel-use">
+        <label for="fuelUse">Fogyasztás:</label>
+        <input type="text" id="fuelUse" />
+      </div>
+
+      <button class="btn btn-primary" id="add-btn">Hozzáad</button>
+    </div>
+    <script src="app.js"></script>
+
+    <script>
+      const electricElem = document.getElementById("electric");
+      electricElem.setAttribute("onchange", "toggleFuelUse();");
+
+      async function toggleFuelUse() {
+        if (electricElem.checked) {
+          document.getElementById("fuel-use").style.display = "none";
+          document.getElementById("fuelUse").value = "";
+        } else {
+          document.getElementById("fuel-use").style.display = "block";
+        }
+      }
+
+      const createBtn = document.getElementById("add-btn");
+      createBtn.addEventListener("click", createCar);
+
+      async function createCar() {
+        const brand = document.getElementById("brand").value;
+        const model = document.getElementById("model").value;
+        const owner = document.getElementById("owner").value;
+        const dayOfCommission =
+          document.getElementById("dayOfCommission").value;
+        const electric = document.getElementById("electric").checked;
+        const fuelUse = document.getElementById("fuelUse").value;
+
+        if (!model || !dayOfCommission) {
+          alert("Minden mezőt meg kell adni");
+          return;
+        }
+
+        if (!electric && (!fuelUse || fuelUse <= 0 || isNaN(fuelUse))) {
+          alert("Fogyasztásnak számnak, és többnek kell lennie, mint 0");
+          return;
+        }
+
+        if (owner.match(/.* .+/) == null) {
+          alert("Tulajdonos név formátuma: vezetéknév keresztnév");
+          return;
+        }
+
+        const body = {
+          brand: brand,
+          model: model,
+          owner: owner,
+          dayOfCommission: dayOfCommission,
+          electric: electric,
+          fuelUse: electric ? 0 : fuelUse,
+        };
+
+        try {
+          const res = await fetch(
+            "https://iit-playground.arondev.hu/api/" + NEPTUN_CODE + "/car",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(body),
+            }
+          );
+
+          if (!res.ok) {
+            throw "Server error occurred, status code: " + res.status;
+          }
+
+          const data = await res.json();
+
+          window.location.href = "car.html?id=" + data.id;
+        } catch (err) {
+          if (typeof err == "string") {
+            alert(err);
+          }
+          console.error(err);
+        }
+      }
+    </script>
+  </body>
+</html>

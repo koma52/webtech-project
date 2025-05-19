@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Autó Adatlap</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="data" class="car-big-card"></div>
+
+    <script src="app.js"></script>
+
+    <script>
+      async function editCar(id) {
+        const dataDiv = document.getElementById("data");
+        dataDiv.innerHTML = "";
+        dataDiv.innerHTML = `
+            <div>
+                <label for="brand">Márka:</label>
+                <select id="brand">
+                    <option value="Toyota">Toyota</option>
+                    <option value="Honda">Honda</option>
+                    <option value="Ford">Ford</option>
+                    <option value="Chevrolet">Chevrolet</option>
+                    <option value="Nissan">Nissan</option>
+                    <option value="BMW">BMW</option>
+                    <option value="Mercedes-Benz">Mercedes-Benz</option>
+                    <option value="Volkswagen">Volkswagen</option>
+                    <option value="Audi">Audi</option>
+                    <option value="Hyundai">Hyundai</option>
+                    <option value="Kia">Kia</option>
+                    <option value="Subaru">Subaru</option>
+                    <option value="Lexus">Lexus</option>
+                    <option value="Mazda">Mazda</option>
+                    <option value="Tesla">Tesla</option>
+                    <option value="Jeep">Jeep</option>
+                    <option value="Porsche">Porsche</option>
+                    <option value="Volvo">Volvo</option>
+                    <option value="Jaguar">Jaguar</option>
+                    <option value="Land Rover">Land Rover</option>
+                    <option value="Mitsubishi">Mitsubishi</option>
+                    <option value="Ferrari">Ferrari</option>
+                    <option value="Lamborghini">Lamborghini</option>
+                </select>
+            </div>
+            <div>
+                <label for="model">Modell:</label>
+                <input type="text" id="model">
+            </div>
+            <div>
+                <label for="owner">Tulajdonos:</label>
+                <input type="text" id="owner">
+            </div>
+            <div>
+                <label for="dayOfCommission">Megjelent:</label>
+                <input type="date" id="dayOfCommission">
+            </div>
+            <div>
+                <p>Meghajtás:</p>
+                <input type="checkbox" id="electric">
+                <label for="electric">Elektromos</label>
+            </div>
+            <div id="fuel-use">
+                <label for="fuelUse">Fogyasztás:</label>
+                <input type="text" id="fuelUse">
+            </div>
+            <button id="save" class="btn btn-primary">Mentés</button>
+        `;
+
+        const electricElem = document.getElementById("electric");
+        electricElem.addEventListener("change", () => {
+          if (electricElem.checked) {
+            document.getElementById("fuel-use").style.display = "none";
+            document.getElementById("fuelUse").value = "";
+          } else {
+            document.getElementById("fuel-use").style.display = "block";
+          }
+        });
+
+        try {
+          const res = await fetch(
+            "https://iit-playground.arondev.hu/api/" +
+              NEPTUN_CODE +
+              "/car/" +
+              id
+          );
+
+          if (!res.ok) {
+            throw "Server error occurred, status code: " + res.status;
+          }
+
+          const data = await res.json();
+
+          const brandSelect = document.getElementById("brand");
+          brandSelect.value = data.brand;
+          const modelInput = document.getElementById("model");
+          modelInput.value = data.model;
+          const ownerInput = document.getElementById("owner");
+          ownerInput.value = data.owner;
+          const dayOfCommissionInput =
+            document.getElementById("dayOfCommission");
+          dayOfCommissionInput.value = data.dayOfCommission;
+          const electricInput = document.getElementById("electric");
+          electricInput.checked = data.electric;
+          const fuelUseInput = document.getElementById("fuelUse");
+          fuelUseInput.value = data.fuelUse;
+          if (data.electric) {
+            document.getElementById("fuel-use").style.display = "none";
+          }
+
+          const saveBtn = document.getElementById("save");
+          saveBtn.addEventListener("click", () => {
+            saveCar(id);
+          });
+        } catch (err) {
+          if (typeof err == "string") {
+            alert(err);
+          }
+          console.error(err);
+        }
+      }
+
+      async function saveCar(id) {
+        const brand = document.getElementById("brand").value;
+        const model = document.getElementById("model").value;
+        const owner = document.getElementById("owner").value;
+        const dayOfCommission =
+          document.getElementById("dayOfCommission").value;
+        const electric = document.getElementById("electric").checked;
+        const fuelUse = document.getElementById("fuelUse").value;
+
+        if (!model || !dayOfCommission) {
+          alert("Minden mezőt meg kell adni");
+          return;
+        }
+
+        if (!electric && (!fuelUse || fuelUse <= 0 || isNaN(fuelUse))) {
+          alert("Fogyasztásnak számnak, és többnek kell lennie, mint 0");
+          return;
+        }
+
+        if (owner.match(/.* .+/) == null) {
+          alert("Tulajdonos név formátuma: vezetéknév keresztnév");
+          return;
+        }
+
+        try {
+          const res = await fetch(
+            "https://iit-playground.arondev.hu/api/" + NEPTUN_CODE + "/car/",
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                id: id,
+                brand: brand,
+                model: model,
+                owner: owner,
+                dayOfCommission: dayOfCommission,
+                electric: electric,
+                fuelUse: electric ? 0 : fuelUse,
+              }),
+            }
+          );
+
+          if (!res.ok) {
+            throw "Server error occurred, status code: " + res.status;
+          }
+
+          getCar(id);
+        } catch (err) {
+          if (typeof err == "string") {
+            alert(err);
+          }
+          console.error(err);
+        }
+      }
+
+      async function getCar(id) {
+        document.getElementById("data").innerHTML = `
+        <h2 id="brand-model" class="data-row"></h2>
+        <p id="owner" class="data-row"></p>
+        <p id="dayOfCommission" class="data-row"></p>
+        <p id="fuel" class="data-row"></p>
+        <button id="edit" class="btn btn-primary">Szerkesztés</button>
+        `;
+        try {
+          const res = await fetch(
+            "https://iit-playground.arondev.hu/api/" +
+              NEPTUN_CODE +
+              "/car/" +
+              id
+          );
+
+          if (!res.ok) {
+            throw "Server error occurred, status code: " + res.status;
+          }
+
+          const data = await res.json();
+
+          document.getElementById("brand-model").innerHTML =
+            data.brand + " " + data.model;
+          document.getElementById("owner").innerHTML =
+            "<strong>Tulajdonos:</strong>" + data.owner;
+          document.getElementById("dayOfCommission").innerHTML =
+            "<strong>Megjelent:</strong>" + data.dayOfCommission;
+          if (data.electric) {
+            document.getElementById("fuel").innerHTML =
+              "<strong>Elektromos</strong>";
+          } else {
+            document.getElementById("fuel").innerHTML =
+              "<strong>Fogyasztás:</strong>" + data.fuelUse;
+          }
+        } catch (err) {
+          if (typeof err == "string") {
+            alert(err);
+          }
+          console.error(err);
+        }
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const carId = params.get("id");
+
+      if (!carId) {
+        window.location = "index.html";
+      }
+
+      getCar(carId);
+
+      const editButton = document.getElementById("edit");
+      editButton.addEventListener("click", () => {
+        editCar(carId);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="hu">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Autók Listázása</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <button class="btn btn-primary" onclick="listCars()">Listázás</button>
+
+    <div id="cars"></div>
+
+    <script src="app.js"></script>
+
+    <script>
+      listCars();
+      async function listCars() {
+        try {
+          const res = await fetch(
+            "https://iit-playground.arondev.hu/api/" + NEPTUN_CODE + "/car",
+            {}
+          );
+
+          if (!res.ok) {
+            throw "Server error occurred, status code: " + res.status;
+          }
+
+          const data = await res.json();
+
+          const cars = document.getElementById("cars");
+
+          cars.innerHTML = "";
+
+          for (const car of data) {
+            const carHtml = `
+                        <div class="car-small-card">
+                            <a href="car.html?id=${car.id}"><h3>${car.brand} ${car.model}</h3></a>
+                            <p class="little-text">ID: ${car.id}</p>
+                            <button class="btn btn-danger" onclick="deleteCar(${car.id})">Törlés</button>
+                        </div>
+                    `;
+            cars.innerHTML += carHtml;
+          }
+        } catch (err) {
+          if (typeof err == "string") {
+            alert(err);
+          }
+          console.error(err);
+        }
+      }
+
+      async function deleteCar(id) {
+        try {
+          await fetch(
+            "https://iit-playground.arondev.hu/api/" +
+              NEPTUN_CODE +
+              "/car/" +
+              id,
+            {
+              method: "DELETE",
+            }
+          );
+          listCars();
+        } catch (err) {
+          if (typeof err == "string") {
+            alert(err);
+          }
+          console.error(err);
+        }
+      }
+    </script>
+  </body>
+</html>
